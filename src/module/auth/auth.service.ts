@@ -24,7 +24,7 @@ export class AuthService {
       this.configService.getOrThrow<JwtModuleOptions>(CONFIG_ACCESS_TOKEN);
   }
 
-  async login(data: LoginDto) {
+  async login(data: LoginDto): Promise<{ accessToken: string }> {
     const user = await this.userService.getUserByUsername(data.username);
 
     if (!user) {
@@ -52,7 +52,9 @@ export class AuthService {
     return this.getTokens(payload);
   }
 
-  async getTokens(payload: JwtPayloadInterface) {
+  async getTokens(
+    payload: JwtPayloadInterface,
+  ): Promise<{ accessToken: string }> {
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.accessTokenConfig.secret,
       expiresIn: this.accessTokenConfig.signOptions?.expiresIn,

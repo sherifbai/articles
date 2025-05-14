@@ -36,7 +36,9 @@ export class UserController {
   }
 
   @Get()
-  async getUsers(@Query() data: UserListDto) {
+  async getUsers(
+    @Query() data: UserListDto,
+  ): Promise<PaginatedResponse<Omit<UserEntity, 'password'>>> {
     return this.userService.getUsers(data);
   }
 }

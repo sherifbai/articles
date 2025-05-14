@@ -44,7 +44,9 @@ export class UserService {
     return user;
   }
 
-  async getUsers(data: UserListDto) {
+  async getUsers(
+    data: UserListDto,
+  ): Promise<PaginatedResponse<Omit<UserEntity, 'password'>>> {
     const count = await this.repository.count();
     const pagination = createPagination({
       count,
