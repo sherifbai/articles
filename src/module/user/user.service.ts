@@ -10,6 +10,7 @@ import { UserCreateDto } from './dto/user.create.dto';
 import { hash } from 'bcrypt';
 import { UserListDto } from './dto/user.list.dto';
 import { createPagination } from '../../common/helpers/pagination.helper';
+import { PaginatedResponse } from '../../common/interfaces/paginated.response';
 
 @Injectable()
 export class UserService {
@@ -25,13 +26,15 @@ export class UserService {
     const salt = parseInt(process.env.SALT || '10');
     const hashPassword = await hash(data.password, salt);
 
-    const userEntity: UserEntity = {
-      ...data,
-      id: crypto.randomUUID(),
+    const user = this.repository.create({
+      email: data.email,
       password: hashPassword,
-    };
+      username: data.username,
+      firstName: data.firstName,
+      lastName: data.lastName,
+    });
 
-    await this.repository.save(userEntity);
+    await this.repository.save(user);
   }
 
   async getUserById(id: string): Promise<UserEntity> {

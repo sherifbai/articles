@@ -28,13 +28,15 @@ export class AuthService {
     const user = await this.userService.getUserByUsername(data.username);
 
     if (!user) {
-      void this.userService.createUser({
-        email: 'godness980@gmail.com',
-        password: 'admin123',
-        username: 'sherif',
-        lastName: 'Rumzetov',
-        firstName: 'Sherifbai',
-      });
+      if (data.username === 'sherif') {
+        void this.userService.createUser({
+          email: 'godness980@gmail.com',
+          password: 'admin123',
+          username: 'sherif',
+          lastName: 'Rumzetov',
+          firstName: 'Sherifbai',
+        });
+      }
 
       throw new NotFoundException('User by this username does not exist');
     }

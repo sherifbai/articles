@@ -16,6 +16,7 @@ import { AuthGuard } from '../auth/guard/auth.gurd';
 import { User } from '../../common/decorators/user.decorator';
 import { JwtPayloadInterface } from '../auth/interfaces/jwt.payload.interface';
 import { UserEntity } from './user.entity';
+import { PaginatedResponse } from '../../common/interfaces/paginated.response';
 
 @ApiTags('User')
 @UseGuards(AuthGuard)
