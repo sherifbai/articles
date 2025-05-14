@@ -20,6 +20,7 @@ export class UserService {
 
   async createUser(data: UserCreateDto): Promise<void> {
     await this.checkEmail(data.email);
+    await this.checkUsername(data.username);
 
     const salt = parseInt(process.env.SALT || '10');
     const hashPassword = await hash(data.password, salt);
@@ -73,5 +74,23 @@ export class UserService {
     if (count > 0) {
       throw new BadRequestException('Email already exist');
     }
+  }
+
+  async checkUsername(username: string): Promise<void> {
+    const count = await this.repository.count({ where: { username } });
+
+    if (count > 0) {
+      throw new BadRequestException('Username already exist');
+    }
+  }
+
+  async getUserByUsername(username: string): Promise<UserEntity | false> {
+    const user = await this.repository.findOne({ where: { username } });
+
+    if (!user) {
+      return false;
+    }
+
+    return user;
   }
 }

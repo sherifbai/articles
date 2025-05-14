@@ -1,8 +1,10 @@
 import { registerAs } from '@nestjs/config';
 import * as process from 'process';
+import { JwtModuleOptions } from '@nestjs/jwt';
 
 export const APP_CONFIG_TOKEN = 'APP_CONFIG_TOKEN';
 export const DB_CONFIG_TOKEN = 'DB_CONFIG_TOKEN';
+export const CONFIG_ACCESS_TOKEN = 'CONFIG_ACCESS_TOKEN';
 
 export const appConfig = registerAs(
   APP_CONFIG_TOKEN,
@@ -27,6 +29,15 @@ export const dbConfig = registerAs(
     synchronize: process.env.NODE_ENV === 'development',
     entities: ['dist/src/**/*.entity.js'],
     migrations: ['dist/src/database/migrations/*.js'],
+  }),
+);
+
+export const accessTokenConfig = registerAs(
+  CONFIG_ACCESS_TOKEN,
+  (): JwtModuleOptions => ({
+    global: true,
+    secret: process.env.ACCESS_TOKEN_SECRET || 'secret',
+    signOptions: { expiresIn: process.env.ACCESS_TOKEN_EXPIRE || '24h' },
   }),
 );
 
