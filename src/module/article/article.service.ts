@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   FindOptionsWhere,
@@ -13,14 +13,27 @@ import { ArticleListDto } from './dto/article.list.dto';
 import { createPagination } from '../../common/helpers/pagination.helper';
 import { ArticleUpdateDto } from './dto/article.update.dto';
 import { PaginatedResponse } from '../../common/interfaces/paginated.response';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import {
+  CONFIG_REDIS_TOKEN,
+  RedisConfig,
+} from '../../common/config/app.config';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ArticleService {
+  private readonly redisConfig: RedisConfig;
+
   constructor(
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     @InjectRepository(ArticleEntity)
     private readonly repository: Repository<ArticleEntity>,
     private readonly userService: UserService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.redisConfig = configService.get<RedisConfig>(CONFIG_REDIS_TOKEN);
+  }
 
   async createArticle(data: ArticleCreateDto): Promise<void> {
     const author = await this.userService.getUserById(data.authorId);
@@ -31,6 +44,7 @@ export class ArticleService {
       name: data.name,
     });
 
+    await this.invalidationArticleCache();
     await this.repository.save(article);
   }
 
@@ -47,6 +61,11 @@ export class ArticleService {
   async getArticles(
     data: ArticleListDto,
   ): Promise<PaginatedResponse<ArticleEntity>> {
+    const cacheKey = `articles:${JSON.stringify(data)}`;
+    const cached =
+      await this.cacheManager.get<PaginatedResponse<ArticleEntity>>(cacheKey);
+    if (cached) return cached;
+    console.log(123);
     let where: FindOptionsWhere<ArticleEntity> = {};
 
     if (data.authorId) {
@@ -85,16 +104,25 @@ export class ArticleService {
       take: pagination.take,
     });
 
-    return {
+    const response: PaginatedResponse<ArticleEntity> = {
       data: articles,
       totalDocs: pagination.totalElements,
       totalPage: pagination.totalPage,
     };
+
+    await this.cacheManager.set<PaginatedResponse<ArticleEntity>>(
+      cacheKey,
+      response,
+      this.redisConfig.ttl,
+    );
+
+    return response;
   }
 
   async deleteArticleById(id: string): Promise<void> {
     const article = await this.getArticleById(id);
 
+    await this.invalidationArticleCache();
     await this.repository.delete({ id: article.id });
   }
 
@@ -111,6 +139,11 @@ export class ArticleService {
     article.name = data.name;
     article.description = data.description;
 
+    await this.invalidationArticleCache();
     return await this.repository.save(article);
+  }
+
+  async invalidationArticleCache(): Promise<void> {
+    await this.cacheManager.clear();
   }
 }

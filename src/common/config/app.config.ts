@@ -1,10 +1,13 @@
 import { registerAs } from '@nestjs/config';
 import * as process from 'process';
 import { JwtModuleOptions } from '@nestjs/jwt';
+import { CacheStore } from '@nestjs/common/cache';
+import * as redisStore from 'cache-manager-ioredis';
 
 export const APP_CONFIG_TOKEN = 'APP_CONFIG_TOKEN';
 export const DB_CONFIG_TOKEN = 'DB_CONFIG_TOKEN';
 export const CONFIG_ACCESS_TOKEN = 'CONFIG_ACCESS_TOKEN';
+export const CONFIG_REDIS_TOKEN = 'CONFIG_REDIS_TOKEN';
 
 export const appConfig = registerAs(
   APP_CONFIG_TOKEN,
@@ -41,6 +44,16 @@ export const accessTokenConfig = registerAs(
   }),
 );
 
+export const redisConfig = registerAs(
+  CONFIG_REDIS_TOKEN,
+  (): RedisConfig => ({
+    store: redisStore,
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT) || 6379,
+    ttl: (parseInt(process.env.REDIS_TTL, 10) || 60) * 1000,
+  }),
+);
+
 export type AppConfig = {
   host: string;
   port: number;
@@ -59,4 +72,11 @@ export type DbConfig = {
   synchronize: boolean;
   entities: string[];
   migrations: string[];
+};
+
+export type RedisConfig = {
+  store: CacheStore;
+  host: string;
+  port: number;
+  ttl: number;
 };
