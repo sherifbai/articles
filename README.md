@@ -1,7 +1,5 @@
 ## Installation
 
-# Copy envexample to .env and fill the data
-
 ```bash
 $ pnpm install
 ```
@@ -9,6 +7,8 @@ $ pnpm install
 ## Running the app
 
 ```bash
+# before run copy envexample to .env and fill the data
+
 # development
 $ pnpm run start
 
