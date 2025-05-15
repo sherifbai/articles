@@ -1,5 +1,7 @@
 ## Installation
 
+# Copy envexample to .env and fill the data
+
 ```bash
 $ pnpm install
 ```
@@ -34,7 +36,7 @@ $ pnpm run test:cov
 
 ```bash
 # generate
-$ npm run migration:generate --name=CreateTableArticle
+$ npm run migration:generate --name=${migrationName}
 
 # run
 $ npm run migration:run
